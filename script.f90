@@ -21,22 +21,24 @@ program kadai
     s_prev = zero
     do n = init_n, max_n
         dx = (x_n - x_0) / real(n, rkind)
-        x_sum = zero
-        do i = 0, n
+
+        x_sum = half*(f(x_0) + f(x_n))
+        do i = 1, n-1
             x_sum = x_sum + f(x_0 + i*dx)
         end do
-        x_sum = x_sum  - half*(f(x_0) + f(x_n))
         s = x_sum*dx
+
         diff = s - s_prev
+        if (abs(diff) < diff_thresh) exit
         if (mod(n, n_print)==0) then
             print*, "n = ", n
             print*, "s = ", s
             print*, "diff = ", diff
             print*
         endif
-        if (abs(diff) < diff_thresh) exit
         s_prev = s
     end do
+
     print "(a, i4)", "Calculation converged at n = ", n
     print "(SP, a, e16.9)", "Integrated value = ", s
     print "(SP, a, e16.9)", "Difference from n-1 = ", diff
