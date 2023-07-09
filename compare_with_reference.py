@@ -12,7 +12,7 @@ ax.set_xlim([0, 1])
 ax.set_ylabel("y")
 ax.set_ylim([1.0, 1.3])
 
-df = pd.read_csv("data.csv")
+df = pd.read_csv("result.csv")
 ax.plot(df.x, df.y, label="lapack")
 
 ax.legend(loc="upper left", bbox_to_anchor=(1.05, 1.0))
