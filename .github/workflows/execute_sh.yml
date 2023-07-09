@@ -16,5 +16,6 @@ jobs:
       - name: Save result as file
         uses: actions/upload-artifact@v3
         with:
-          name: result
-          path: result.txt
+          paths:
+            - "result.txt"
+            - "*.png"
