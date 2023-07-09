@@ -7,11 +7,11 @@ end module constants
 program kadai
     use constants
     implicit none
-    integer(ikind) :: n_div=20, n_elem, i, info
+    integer(ikind) :: n_div=100, n_elem, i, info, unit
     integer(ikind), allocatable :: ipiv(:)
     real(rkind)    :: a, b, c, dx
     real(rkind)    :: xb0, xb1, yb0, yb1 ! boundary conditions
-    real(rkind), allocatable :: mat(:,:), rhs_vec(:), y_vec(:)
+    real(rkind), allocatable :: mat(:,:), rhs_vec(:), y_vec(:), x_vec(:)
 
     xb0 = 0
     xb1 = 1
@@ -24,13 +24,13 @@ program kadai
     ! d^2y/dx^2|i = 1/(dx^2)*(y_i+1 - 2y_i + y_i-1)
     ! dy/dx|i = 1/(2dx)*(y_i+1 - y_i-1)
     ! y|i = y_i
-    ! (y'' + 3y' + 2y)_i = (1/dx - 3/2)/dx y_i-1 + (-2/dx^2 + 1) y_i + (1/dx + 3/2)/dx y_i+1
+    ! (y'' + 3y' + 2y)_i = (1/dx - 3/2)/dx y_i-1 + (-2/dx^2 + 2) y_i + (1/dx + 3/2)/dx y_i+1
     a = (one/dx - c1p5)/dx
-    b = -two/dx**2 + one
+    b = -two/dx**2 + two
     c = (one/dx + c1p5)/dx
 
     n_elem = n_div - 1
-    allocate(rhs_vec(n_elem), mat(n_elem, n_elem))
+    allocate(rhs_vec(n_elem), mat(n_elem, n_elem), ipiv(n_elem))
     rhs_vec(:) = zero
     rhs_vec(1) = -a*yb0
     rhs_vec(n_elem) = -c*yb1
@@ -41,10 +41,19 @@ program kadai
         mat(i, i) = b
         if (i/=n_elem) mat(i, i+1) = c
     end do
+    allocate(y_vec, source=rhs_vec)
+    call dgesv(n_elem, 1, mat, n_elem, ipiv, y_vec, n_elem, info)
 
-    allocate(ipiv(n_elem))
-    call dgesv(n_elem, 1, mat, n_elem, ipiv, rhs_vec, n_elem, info)
-    call move_alloc(rhs_vec, y_vec)
-    print*, y_vec
+    allocate(x_vec, mold=y_vec)
+    x_vec(:) = [(i*dx, i=1, n_elem)]
+
+    open(newunit=unit, file="data.csv", form="formatted")
+    write(unit, "(a)") "x,y"
+    write(unit, "(SP, ES16.9, ',', ES16.9)") xb0, yb0
+    do i = 1, n_elem
+        write(unit, "(SP, ES16.9, ',', ES16.9)") x_vec(i), y_vec(i)
+    end do
+    write(unit, "(SP, ES16.9, ',', ES16.9)") xb1, yb1
+    close(unit)
 
 end program kadai
